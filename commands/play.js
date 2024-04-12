@@ -46,7 +46,7 @@ module.exports = {
         });
 
         const stream = ytdl(url, {
-            quality: "highestaudio",
+            quality: "lowestaudio",
             filter: (form) => {
                 if (form.bitrate && channel.bitrate)
                     return form.bitrate <= channel.bitrate;
