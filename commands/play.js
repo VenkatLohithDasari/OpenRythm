@@ -6,6 +6,7 @@ const {
     getVoiceConnection,
 } = require("@discordjs/voice");
 const ytdl = require("ytdl-core");
+const youtubeSr = require("youtube-sr").default;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,16 +14,21 @@ module.exports = {
         .setDescription("Plays a song from YouTube.")
         .addStringOption((option) =>
             option
-                .setName("url")
-                .setDescription("The URL of the YouTube video")
+                .setName("input")
+                .setDescription("The URL or search query of the YouTube video")
                 .setRequired(true)
         ),
     async execute(interaction) {
-        const url = interaction.options.getString("url");
+        const input = interaction.options.getString("input");
+        let url = input;
 
         if (!ytdl.validateURL(url)) {
-            await interaction.reply("Please provide a valid YouTube URL.");
-            return;
+            const searchResults = await youtubeSr.search(input, { limit: 1 });
+            if (searchResults.length === 0) {
+                await interaction.reply("No results found.");
+                return;
+            }
+            url = searchResults[0].url;
         }
 
         const channel = interaction.member.voice.channel;
@@ -39,10 +45,15 @@ module.exports = {
             adapterCreator: interaction.guild.voiceAdapterCreator,
         });
 
-        const stream = ytdl(url, { filter: "audioonly" }).on(
-            "error",
-            console.error
-        );
+        const stream = ytdl(url, {
+            quality: "highestaudio",
+            filter: (form) => {
+                if (form.bitrate && channel.bitrate)
+                    return form.bitrate <= channel.bitrate;
+                return false;
+            },
+        }).on("error", console.error);
+
         const resource = createAudioResource(stream);
         const player = createAudioPlayer();
 
