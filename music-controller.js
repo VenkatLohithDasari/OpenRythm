@@ -15,6 +15,7 @@ class MusicController {
         this.voiceConnection = null;
         this.audioPlayer = createAudioPlayer();
         this.channel = null;
+        this.isLooping = false;
         this.setupListeners();
     }
 
@@ -41,6 +42,8 @@ class MusicController {
     play(url) {
         if (!url) return;
 
+        this.currentTrack = url;
+
         const stream = ytdl(url, {
             quality: "lowestaudio",
             filter: (form) => {
@@ -55,12 +58,14 @@ class MusicController {
     }
 
     next() {
-        if (this.queue.length === 0) {
+        if (this.isLooping && this.currentTrack) {
+            this.play(this.currentTrack);
+        } else if (this.queue.length > 0) {
+            const nextTrack = this.queue.shift();
+            this.play(nextTrack);
+        } else {
             this.stop();
-            return;
         }
-        const nextTrack = this.queue.shift();
-        this.play(nextTrack);
     }
 
     enqueue(track) {
@@ -90,6 +95,11 @@ class MusicController {
         this.audioPlayer.stop();
     }
 
+    toggleLoop() {
+        this.isLooping = !this.isLooping;
+        return this.isLooping;
+    }
+
     stop() {
         this.queue.length = 0;
         this.audioPlayer.stop();
@@ -100,6 +110,7 @@ class MusicController {
         this.voiceConnection = null;
         this.audioPlayer = createAudioPlayer();
         this.channel = null;
+        this.isLooping = false;
     }
 }
 
