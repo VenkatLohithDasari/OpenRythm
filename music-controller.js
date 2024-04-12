@@ -93,3 +93,5 @@ class MusicController {
         this.voiceConnection = null;
     }
 }
+
+module.exports = MusicController;
