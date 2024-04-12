@@ -98,6 +98,7 @@ class MusicController {
         this.currentTrack = null;
         this.voiceConnection.destroy();
         this.voiceConnection = null;
+        this.audioPlayer = createAudioPlayer();
         this.channel = null;
     }
 }
