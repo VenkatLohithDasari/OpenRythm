@@ -73,6 +73,7 @@ class MusicController {
     pause() {
         if (this.isPlaying) {
             this.audioPlayer.pause();
+            this.isPaused = true;
             this.isPlaying = false;
         }
     }
@@ -80,6 +81,7 @@ class MusicController {
     resume() {
         if (!this.isPlaying) {
             this.audioPlayer.unpause();
+            this.isPaused = false;
             this.isPlaying = true;
         }
     }

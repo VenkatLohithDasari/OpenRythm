@@ -3,9 +3,6 @@ const MusicController = require("../music-controller");
 const youtubeSr = require("youtube-sr").default;
 const ytdl = require("ytdl-core");
 
-// Managing music controllers for each guild
-const musicControllers = {};
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("play")
@@ -16,7 +13,7 @@ module.exports = {
                 .setDescription("The URL or search query of the YouTube video")
                 .setRequired(true)
         ),
-    async execute(interaction) {
+    async execute(interaction, musicControllers) {
         const input = interaction.options.getString("input");
         let url = input;
 

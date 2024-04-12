@@ -8,6 +8,9 @@ const client = new Client({
 
 client.commands = new Collection();
 
+// Managing music controllers for each guild
+const musicControllers = {};
+
 const commandFiles = fs
     .readdirSync("./commands")
     .filter((file) => file.endsWith(".js"));
@@ -35,7 +38,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (!command) return;
 
     try {
-        await command.execute(interaction);
+        await command.execute(interaction, musicControllers);
     } catch (error) {
         console.log(error);
         await interaction.reply({
