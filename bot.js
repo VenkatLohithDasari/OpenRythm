@@ -2,7 +2,9 @@ require("dotenv").config();
 const fs = require("fs");
 const { Client, GatewayIntentBits, Collection, Events } = require("discord.js");
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
+});
 
 client.commands = new Collection();
 
@@ -42,7 +44,5 @@ client.on(Events.InteractionCreate, async (interaction) => {
         });
     }
 });
-
-
 
 client.login(process.env.DISCORD_TOKEN);
