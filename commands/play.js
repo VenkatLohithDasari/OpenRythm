@@ -1,12 +1,10 @@
 const { SlashCommandBuilder } = require("discord.js");
-const {
-    joinVoiceChannel,
-    createAudioPlayer,
-    createAudioResource,
-    getVoiceConnection,
-} = require("@discordjs/voice");
-const ytdl = require("ytdl-core");
+const MusicController = require("../music-controller");
 const youtubeSr = require("youtube-sr").default;
+const ytdl = require("ytdl-core");
+
+// Managing music controllers for each guild
+const musicControllers = {};
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -22,14 +20,11 @@ module.exports = {
         const input = interaction.options.getString("input");
         let url = input;
 
-        if (!ytdl.validateURL(url)) {
-            const searchResults = await youtubeSr.search(input, { limit: 1 });
-            if (searchResults.length === 0) {
-                await interaction.reply("No results found.");
-                return;
-            }
-            url = searchResults[0].url;
+        if (!musicControllers[interaction.guildId]) {
+            musicControllers[interaction.guildId] = new MusicController();
         }
+
+        const musicController = musicControllers[interaction.guildId];
 
         const channel = interaction.member.voice.channel;
         if (!channel) {
@@ -39,27 +34,19 @@ module.exports = {
             return;
         }
 
-        const connection = joinVoiceChannel({
-            channelId: channel.id,
-            guildId: interaction.guildId,
-            adapterCreator: interaction.guild.voiceAdapterCreator,
-        });
+        musicController.joinChannel(channel);
 
-        const stream = ytdl(url, {
-            quality: "lowestaudio",
-            filter: (form) => {
-                if (form.bitrate && channel.bitrate)
-                    return form.bitrate <= channel.bitrate;
-                return false;
-            },
-        }).on("error", console.error);
+        if (!ytdl.validateURL(url)) {
+            const searchResults = await youtubeSr.search(input, { limit: 1 });
+            if (searchResults.length === 0) {
+                await interaction.reply("No results found.");
+                return;
+            }
+            url = searchResults[0].url;
+        }
 
-        const resource = createAudioResource(stream);
-        const player = createAudioPlayer();
+        musicController.enqueue(url);
 
-        player.play(resource);
-        connection.subscribe(player);
-
-        await interaction.reply(`Now playing: ${url}`);
+        await interaction.reply(`Enqueued: ${url}`);
     },
 };

@@ -10,9 +10,11 @@ class MusicController {
     constructor() {
         this.queue = [];
         this.isPlaying = false;
+        this.isPaused = false;
         this.currentTrack = null;
         this.voiceConnection = null;
         this.audioPlayer = createAudioPlayer();
+        this.channel = null;
         this.setupListeners();
     }
 
@@ -24,6 +26,8 @@ class MusicController {
 
     joinChannel(channel) {
         if (!channel) return;
+
+        this.channel = channel;
 
         this.voiceConnection = joinVoiceChannel({
             channelId: channel.id,
@@ -40,8 +44,8 @@ class MusicController {
         const stream = ytdl(url, {
             quality: "lowestaudio",
             filter: (form) => {
-                if (form.bitrate && channel.bitrate)
-                    return form.bitrate <= channel.bitrate;
+                if (form.bitrate && this.channel.bitrate)
+                    return form.bitrate <= this.channel.bitrate;
                 return false;
             },
         }).on("error", console.error);
@@ -61,7 +65,7 @@ class MusicController {
 
     enqueue(track) {
         this.queue.push(track);
-        if (!this.isPlaying) {
+        if (!this.isPlaying && !this.isPaused) {
             this.next();
         }
     }
@@ -88,9 +92,11 @@ class MusicController {
         this.queue.length = 0;
         this.audioPlayer.stop();
         this.isPlaying = false;
+        this.isPaused = false;
         this.currentTrack = null;
         this.voiceConnection.destroy();
         this.voiceConnection = null;
+        this.channel = null;
     }
 }
 
